@@ -1,16 +1,18 @@
+// src/settings/settings.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Settings, SettingsDocument } from './settings.schema';
+import type { Model } from 'mongoose';
+import type { SettingsDocument, Settings } from './settings.schema';
+import { S3Service } from '../lib/s3.service';
+import type { Express } from 'express';
 
 @Injectable()
 export class SettingsService {
-  saveUpload(file: Express.Multer.File) {
-    throw new Error('Method not implemented.');
-  }
+  // constructor uses parameter properties and proper injection for Mongoose model
   constructor(
-    @InjectModel(Settings.name)
-    private settingsModel: Model<SettingsDocument>,
+    @InjectModel('Settings') // or @InjectModel(Settings.name) if you export `Settings` symbol
+    private readonly settingsModel: Model<SettingsDocument>,
+    private readonly s3Service: S3Service,
   ) {}
 
   async get() {
@@ -45,5 +47,14 @@ export class SettingsService {
         .exec();
     }
     return this.create(settings);
+  }
+
+  async saveUpload(file: Express.Multer.File) {
+    const uploadResult = await this.s3Service.uploadFile(file, 'settings');
+    return uploadResult.secure_url;
+  }
+
+  async deleteFile(public_id: string): Promise<void> {
+    await this.s3Service.deleteFile(public_id);
   }
 }

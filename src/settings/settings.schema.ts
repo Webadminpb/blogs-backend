@@ -5,11 +5,12 @@ export type SettingsDocument = Settings & Document;
 
 @Schema({ timestamps: true })
 export class Settings {
+  // Use definite assignment assertions because Mongoose initializes these at runtime
   @Prop({ required: true, default: 'My Site' })
-  siteName: string;
+  siteName!: string;
 
   @Prop({ required: true, default: 'Site description' })
-  siteDescription: string;
+  siteDescription!: string;
 
   @Prop({ default: '' })
   logo?: string;
@@ -49,10 +50,10 @@ export class Settings {
   };
 
   @Prop({ default: 'light' })
-  theme: 'light' | 'dark' | 'system';
+  theme!: 'light' | 'dark' | 'system';
 
   @Prop({ default: 10 })
-  postsPerPage: number;
+  postsPerPage!: number;
 
   // audit fields
   @Prop({ default: null })

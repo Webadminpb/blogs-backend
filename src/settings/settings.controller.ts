@@ -11,13 +11,17 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
+
+// IMPORTANT: import as a value (not `import type`) so Nest can inject it at runtime
 import { SettingsService } from './settings.service';
-import { CreateSettingsDto } from './dto/create-settings.dto';
-import { UpdateSettingsDto } from './dto/update-settings.dto';
+
+import type { CreateSettingsDto } from './dto/create-settings.dto';
+import type { UpdateSettingsDto } from './dto/update-settings.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Express } from 'express';
 
 @Controller('settings')
 export class SettingsController {
@@ -49,14 +53,15 @@ export class SettingsController {
     return this.settings.update(id, body);
   }
 
-  // Optional: simple image upload endpoint that stores locally in /public/uploads
   @Post('upload')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    // For production use S3/Cloudinary adapter. Here we assume a small local dev handler exists in service.
     const url = await this.settings.saveUpload(file);
-    return { url };
+    return {
+      url,
+      message: 'File uploaded successfully to AWS S3',
+    };
   }
 }
