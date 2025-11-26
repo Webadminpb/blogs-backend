@@ -6,19 +6,24 @@ import {
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { AuthTokenPayload, isAuthTokenPayload } from './types';
 
 @Injectable()
 export class AuthService {
   constructor(private readonly usersService: UsersService) {}
 
+  private readonly jwtSecret = process.env.JWT_SECRET || 'secret-key';
+
   // Create JWT token
-  private createToken(payload: any): string {
-    return jwt.sign(payload, process.env.JWT_SECRET || 'secret-key', {
+  private createToken(payload: AuthTokenPayload): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const token = jwtSign(payload, this.jwtSecret, {
       expiresIn: '7d',
-    });
+    }) as string;
+    return token;
   }
 
   // Signup
@@ -41,6 +46,10 @@ export class AuthService {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) throw new UnauthorizedException('Invalid email or password');
 
+    if (!user.password) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid email or password');
 
@@ -56,11 +65,13 @@ export class AuthService {
   // Get current user
   async me(token: string) {
     try {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || 'secret-key',
-      ) as any;
-      const user = await this.usersService.findById(decoded.id);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+      const decoded = jwtVerify(token, this.jwtSecret);
+      if (!isAuthTokenPayload(decoded)) {
+        throw new UnauthorizedException('Invalid token payload');
+      }
+      const payload = decoded;
+      const user = await this.usersService.findById(payload.id);
       if (!user) throw new UnauthorizedException('User not found');
       return user;
     } catch {
@@ -68,13 +79,13 @@ export class AuthService {
     }
   }
   // Get user by ID
-  async getUserById(id: string) {
+  async getUserById(id: string): Promise<Record<string, unknown>> {
     const user = await this.usersService.findById(id);
     if (!user) throw new UnauthorizedException('User not found');
     // remove sensitive fields if any (password)
-    const { password, ...safe } = user.toObject
-      ? user.toObject()
-      : (user as any);
+    const userObject = user.toObject<Record<string, unknown>>();
+    delete (userObject as { password?: unknown }).password;
+    const safe = userObject;
     return safe;
   }
 }

@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateMenuDto {
   @IsNotEmpty()
@@ -12,4 +19,13 @@ export class CreateMenuDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Type(() => Number)
+  index: number;
+
+  @IsOptional()
+  @IsBoolean()
+  status?: boolean;
 }

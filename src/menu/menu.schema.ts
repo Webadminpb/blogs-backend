@@ -12,6 +12,9 @@ export class Menu extends Document {
   @Prop()
   description?: string;
 
+  @Prop({ type: Number, required: true, default: 0 })
+  index: number;
+
   @Prop({ default: true })
   status: boolean;
 }

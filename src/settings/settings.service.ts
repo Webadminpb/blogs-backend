@@ -26,12 +26,12 @@ export class SettingsService {
     return settings;
   }
 
-  async create(data: any) {
+  async create(data: Partial<Settings>) {
     const settings = new this.settingsModel(data);
     return settings.save();
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: Partial<Settings>) {
     const settings = await this.settingsModel
       .findByIdAndUpdate(id, data, { new: true })
       .exec();
@@ -39,7 +39,7 @@ export class SettingsService {
     return settings;
   }
 
-  async seed(settings: any) {
+  async seed(settings: Partial<Settings>) {
     const existing = await this.settingsModel.findOne().exec();
     if (existing) {
       return this.settingsModel

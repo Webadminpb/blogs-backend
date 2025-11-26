@@ -30,6 +30,11 @@ export class MenuController {
     return this.menuService.getAllMenus();
   }
 
+  @Get()
+  getMenusRoot() {
+    return this.menuService.getAllMenus();
+  }
+
   // ✅ Get all menus with submenus (admin only)
   @Get('admin/all')
   @UseGuards(JwtAuthGuard)

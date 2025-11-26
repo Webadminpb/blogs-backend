@@ -8,7 +8,6 @@ import {
   Param,
   Post,
   Patch,
-  Put,
   HttpException,
   HttpStatus,
   ForbiddenException,
@@ -18,6 +17,25 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole } from './user.schema';
+import { Request } from 'express';
+
+type CreateUserPayload = Partial<{
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}>;
+
+const isDuplicateKeyError = (error: unknown): error is { code: number } => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof (error as { code?: unknown }).code === 'number' &&
+    (error as { code: number }).code === 11000
+  );
+};
 
 @Controller('users')
 export class UsersController {
@@ -28,7 +46,7 @@ export class UsersController {
     try {
       const users = await this.users.findAll();
       return { items: users };
-    } catch (error) {
+    } catch {
       throw new HttpException(
         'Failed to fetch users',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -37,24 +55,34 @@ export class UsersController {
   }
 
   @Post()
-  async create(@Body() body: any) {
+  async create(@Body() body: CreateUserPayload) {
     try {
-      if (!body.name || !body.email || !body.password || !body.role) {
+      if (!body?.name || !body.role) {
         throw new HttpException(
           'Missing required user fields',
           HttpStatus.BAD_REQUEST,
         );
       }
+      if (body.role !== UserRole.AUTHOR) {
+        if (!body.email || !body.password) {
+          throw new HttpException(
+            'Email and password are required for non-author users',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
       return await this.users.create(body);
-    } catch (error) {
-      if (error.code === 11000) {
+    } catch (error: unknown) {
+      if (isDuplicateKeyError(error)) {
         // Duplicate email error from MongoDB
         throw new HttpException('Email already exists', HttpStatus.CONFLICT);
       }
-      throw new HttpException(
-        error.message || 'Failed to create user',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      const message =
+        error instanceof Error ? error.message : 'Failed to create user';
+      throw new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -62,11 +90,10 @@ export class UsersController {
   async findOne(@Param('id') id: string) {
     try {
       return await this.users.findOne(id);
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'User not found',
-        HttpStatus.NOT_FOUND,
-      );
+    } catch (error: unknown) {
+      if (error instanceof HttpException) throw error;
+      const message = error instanceof Error ? error.message : 'User not found';
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -74,12 +101,18 @@ export class UsersController {
   @Patch(':id')
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async update(
-    @Req() req: any,
+    @Req()
+    req: Request & {
+      user: {
+        id: string;
+        role: string;
+      };
+    },
     @Param('id') id: string,
     @Body() body: UpdateUserDto,
   ) {
     // allow if user is admin or updating own profile
-    const requester = req.user as any;
+    const requester = req.user;
     if (requester.role !== 'admin' && requester.id !== id) {
       throw new ForbiddenException('You can only update your own profile');
     }
@@ -90,11 +123,11 @@ export class UsersController {
   async remove(@Param('id') id: string) {
     try {
       return await this.users.remove(id);
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to delete user',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    } catch (error: unknown) {
+      if (error instanceof HttpException) throw error;
+      const message =
+        error instanceof Error ? error.message : 'Failed to delete user';
+      throw new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

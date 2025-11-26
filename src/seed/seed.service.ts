@@ -3,8 +3,9 @@ import { UsersService } from '../users/users.service';
 import { PostsService } from '../posts/posts.service';
 import { MenuService } from '../menu/menu.service';
 import { SettingsService } from '../settings/settings.service';
-import { v4 as uuid } from 'uuid';
-import { UserRole } from '../users/user.schema'; // Make sure enum is imported
+import { UserRole, UserDocument } from '../users/user.schema'; // Make sure enum is imported
+import { Types } from 'mongoose';
+import { CreatePostDto } from '../posts/dto/create-post.dto';
 
 @Injectable()
 export class SeedService {
@@ -17,9 +18,7 @@ export class SeedService {
 
   async run() {
     // Users (demo admin)
-    const demoAdminId = uuid();
     const demoUser = {
-      _id: demoAdminId,
       name: 'Admin Demo',
       email: 'admin@gmail.com',
       role: UserRole.ADMIN,
@@ -30,7 +29,11 @@ export class SeedService {
     await this.users.create(demoUser);
 
     // Menus and Submenus
-    const defaultMenus = [
+    const baseMenus: Array<{
+      name: string;
+      slug: string;
+      subCategories: string[];
+    }> = [
       {
         name: 'BEAUTY',
         slug: 'beauty',
@@ -70,62 +73,97 @@ export class SeedService {
         subCategories: ['india', 'singapore'],
       },
     ];
+    const defaultMenus = baseMenus.map((menu, index) => ({
+      ...menu,
+      index,
+    }));
 
     for (const menuData of defaultMenus) {
       const { subCategories, ...menuFields } = menuData;
-      const createdMenu = await this.menuService.createMenu(menuFields);
+      const createdMenu = await this.menuService.createMenu({
+        name: menuFields.name,
+        slug: menuFields.slug,
+        index: menuFields.index,
+        status: true,
+      });
 
       for (const subName of subCategories) {
         const subSlug = subName.toLowerCase().replace(/\s+/g, '-');
         await this.menuService.createSubmenu({
           name: subName,
           slug: subSlug,
-          parent_id: createdMenu._id as any,
+          parent_id: createdMenu._id as Types.ObjectId,
+          showOnHomePage: false,
         });
       }
     }
 
-    // Sample posts (use loop with await for each post)
-    const samplePosts = [
+    const authorProfiles = [
       {
-        _id: uuid(),
-        title: '10 Beauty Hacks That Actually Work',
-        category: 'BEAUTY',
-        subCategory: 'beauty tips',
-        authors: [{ name: 'Aarushi Mehta' }],
-        email: 'aarushi@example.com',
-        createdAt: new Date('2025-10-20').toISOString(),
-        time: '10:30',
-        status: 'published',
-        tags: ['makeup', 'skincare', 'daily tips'],
-        type: 'free',
-        description:
-          'Learn the top 10 simple beauty hacks to upgrade your daily routine.',
-        content:
-          'Learn the top 10 simple beauty hacks to upgrade your daily routine.',
-        thumbnail: '',
-        images: [],
-        views: 0,
+        name: 'Aarushi Mehta',
+        role: UserRole.AUTHOR,
+        description: 'Beauty expert and editor',
+        index: 0,
       },
       {
-        _id: uuid(),
+        name: 'Kavita Sharma',
+        role: UserRole.AUTHOR,
+        description: 'Hair stylist and writer',
+        index: 1,
+      },
+    ];
+
+    const createdAuthors: UserDocument[] = [];
+    for (const profile of authorProfiles) {
+      const author = await this.users.create(profile);
+      createdAuthors.push(author);
+    }
+
+    // Sample posts (use loop with await for each post)
+    const samplePosts: CreatePostDto[] = [
+      {
+        title: '10 Beauty Hacks That Actually Work',
+        slug: 'beauty-hacks-that-work',
+        menus: ['beauty'],
+        submenus: ['beauty-tips'],
+        authors: [
+          {
+            _id: String(createdAuthors[0]._id),
+            name: createdAuthors[0].name,
+            description: createdAuthors[0].description,
+          },
+        ],
+        status: 'published',
+        tags: ['makeup', 'skincare', 'daily tips'],
+        description:
+          'Learn the top 10 simple beauty hacks to upgrade your daily routine.',
+        content:
+          'Learn the top 10 simple beauty hacks to upgrade your daily routine.',
+        thumbnail: '',
+        images: [],
+        index: 0,
+      },
+      {
         title: 'Top Trends in Hair Styling for 2025',
-        category: 'TRENDS',
-        subCategory: 'beauty trends',
-        authors: [{ name: 'Kavita Sharma' }],
-        email: 'kavita@example.com',
-        createdAt: new Date('2025-10-24').toISOString(),
-        time: '09:00',
+        slug: 'top-hair-trends-2025',
+        menus: ['trends'],
+        submenus: ['beauty-trends'],
+        authors: [
+          {
+            _id: String(createdAuthors[1]._id),
+            name: createdAuthors[1].name,
+            description: createdAuthors[1].description,
+          },
+        ],
         status: 'draft',
         tags: ['hairstyle', 'fashion', 'celebrity'],
-        type: 'free',
         description:
           'Discover this year’s most trending hairstyles and how to get the look.',
         content:
           'Discover this year’s most trending hairstyles and how to get the look.',
         thumbnail: '',
         images: [],
-        views: 0,
+        index: 1,
       },
     ];
 
@@ -136,7 +174,6 @@ export class SeedService {
 
     // Settings default (assuming .create exists)
     const defaultSettings = {
-      _id: uuid(),
       site_name: 'daSalon',
       site_description: 'Recreation of dasalon-blogs',
       logo_url: '',
@@ -154,13 +191,13 @@ export class SeedService {
     await this.settings.create(defaultSettings);
 
     // Gather statistics
-    const allUsers = (await this.users.findAll?.()) ?? [];
-    const allPosts = (await this.posts.findAll?.()) ?? [];
+    const allUsers = await this.users.findAll();
+    const allPosts = await this.posts.findAll();
 
     return {
-      users: Array.isArray(allUsers) ? allUsers.length : 0,
+      users: allUsers.length,
       menus: (await this.menuService.getAllMenus()).length,
-      posts: Array.isArray(allPosts) ? allPosts.length : 0,
+      posts: allPosts.length,
       settings: await this.settings.get(),
     };
   }

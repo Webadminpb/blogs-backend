@@ -13,7 +13,7 @@ export class DashboardController {
 
   @Get('dashboard-stats')
   async stats() {
-    const posts = await this.posts.findAll();
+    const posts = (await this.posts.findAll()) as Array<{ views?: number }>;
     const totalPosts = posts.length;
 
     const menus = await this.menuService.getAllMenus();
@@ -23,10 +23,10 @@ export class DashboardController {
     const totalUsers = users.length;
 
     // Only works if your Post schema has `views: number`
-    const totalViews = posts.reduce(
-      (acc, p) => acc + ((p as any).views || 0),
-      0,
-    );
+    const totalViews = posts.reduce((acc, post) => {
+      const views = typeof post.views === 'number' ? post.views : 0;
+      return acc + views;
+    }, 0);
 
     return { totalPosts, totalCategories, totalUsers, totalViews };
   }

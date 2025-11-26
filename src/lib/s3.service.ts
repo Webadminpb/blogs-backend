@@ -125,7 +125,7 @@ export class S3Service {
           // remove leading slash
           key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ''));
         }
-      } catch (e) {
+      } catch {
         // ignore URL parse errors and treat public_id as key
         this.logger.debug(
           `deleteFile: could not parse public_id as URL; treating as key: ${public_id}`,

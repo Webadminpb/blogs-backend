@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 
 export class CreateSubmenuDto {
@@ -16,4 +16,8 @@ export class CreateSubmenuDto {
 
   @IsNotEmpty()
   parent_id: Types.ObjectId;
+
+  @IsOptional()
+  @IsBoolean()
+  showOnHomePage?: boolean;
 }

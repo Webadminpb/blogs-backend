@@ -13,7 +13,10 @@ export class Submenu extends Document {
   description?: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Menu', required: true })
-  parent_id: string;
+  parent_id: Types.ObjectId;
+
+  @Prop({ default: false })
+  showOnHomePage?: boolean;
 
   @Prop({ default: true })
   status: boolean;

@@ -1,4 +1,28 @@
-import { IsString, IsOptional, IsBoolean, IsArray } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  ValidateNested,
+  IsNumber,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+class BlogAuthorDto {
+  @IsString()
+  _id: string;
+
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
 
 export class CreatePostDto {
   @IsString()
@@ -15,25 +39,30 @@ export class CreatePostDto {
   @IsString()
   content?: string;
 
-  @IsString()
-  menu: string;
+  @IsArray()
+  @IsString({ each: true })
+  menus: string[];
 
   @IsOptional()
-  @IsString()
-  submenu?: string;
+  @IsArray()
+  @IsString({ each: true })
+  submenus?: string[];
 
   @IsOptional()
   @IsString()
   thumbnail?: string;
 
   @IsArray()
-  authors: string[];
+  @ValidateNested({ each: true })
+  @Type(() => BlogAuthorDto)
+  authors: BlogAuthorDto[];
 
   @IsOptional()
   @IsString()
   status?: string;
 
   @IsArray()
+  @IsString({ each: true })
   tags: string[];
 
   @IsOptional()
@@ -46,5 +75,11 @@ export class CreatePostDto {
 
   @IsArray()
   @IsOptional()
+  @IsString({ each: true })
   images?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  index?: number;
 }
