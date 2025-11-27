@@ -10,7 +10,7 @@ import { Type } from 'class-transformer';
 export class CreateMenuDto {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name!: string;
 
   @IsOptional()
   @IsString()
@@ -23,7 +23,7 @@ export class CreateMenuDto {
   @IsNotEmpty()
   @IsNumber()
   @Type(() => Number)
-  index: number;
+  index!: number;
 
   @IsOptional()
   @IsBoolean()

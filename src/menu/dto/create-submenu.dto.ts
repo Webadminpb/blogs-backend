@@ -4,7 +4,7 @@ import { Types } from 'mongoose';
 export class CreateSubmenuDto {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name!: string;
 
   @IsOptional()
   @IsString()
@@ -15,7 +15,7 @@ export class CreateSubmenuDto {
   description?: string;
 
   @IsNotEmpty()
-  parent_id: Types.ObjectId;
+  parent_id!: Types.ObjectId;
 
   @IsOptional()
   @IsBoolean()

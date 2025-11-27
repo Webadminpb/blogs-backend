@@ -174,17 +174,18 @@ export class SeedService {
 
     // Settings default (assuming .create exists)
     const defaultSettings = {
-      site_name: 'daSalon',
-      site_description: 'Recreation of dasalon-blogs',
-      logo_url: '',
-      favicon_url: '',
-      facebook_url: '',
-      twitter_url: '',
-      instagram_url: '',
-      linkedin_url: '',
-      theme: 'light',
-      posts_per_page: 10,
-      updated_at: new Date().toISOString(),
+      siteName: 'daSalon',
+      siteDescription: 'Recreation of dasalon-blogs',
+      logo: '',
+      favicon: '',
+      social: {
+        facebook: '',
+        twitter: '',
+        instagram: '',
+        linkedin: '',
+      },
+      theme: 'light' as 'light' | 'dark' | 'system',
+      postsPerPage: 10,
     };
 
     // Use create or update depending on your service API

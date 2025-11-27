@@ -4,22 +4,22 @@ import { Document, Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Submenu extends Document {
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop({ unique: true, required: true, lowercase: true })
-  slug: string;
+  slug!: string;
 
   @Prop()
   description?: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Menu', required: true })
-  parent_id: Types.ObjectId;
+  parent_id!: Types.ObjectId;
 
   @Prop({ default: false })
   showOnHomePage?: boolean;
 
   @Prop({ default: true })
-  status: boolean;
+  status!: boolean;
 }
 
 export const SubmenuSchema = SchemaFactory.createForClass(Submenu);

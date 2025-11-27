@@ -1,6 +1,6 @@
-import { JwtPayload } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
-export interface AuthTokenPayload extends JwtPayload {
+export interface AuthTokenPayload extends jwt.JwtPayload {
   id: string;
   email: string;
   role: string;

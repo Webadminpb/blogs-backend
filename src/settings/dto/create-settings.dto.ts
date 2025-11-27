@@ -30,10 +30,10 @@ class SocialDto {
 
 export class CreateSettingsDto {
   @IsString({ message: 'Site name must be a string' })
-  siteName: string;
+  siteName!: string;
 
   @IsString({ message: 'Site description must be a string' })
-  siteDescription: string;
+  siteDescription!: string;
 
   @IsOptional()
   @IsUrl({}, { message: 'Logo must be a valid URL' })

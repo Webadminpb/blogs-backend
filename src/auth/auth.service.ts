@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
-import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthTokenPayload, isAuthTokenPayload } from './types';
@@ -20,7 +20,7 @@ export class AuthService {
   // Create JWT token
   private createToken(payload: AuthTokenPayload): string {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const token = jwtSign(payload, this.jwtSecret, {
+    const token = jwt.sign(payload, this.jwtSecret, {
       expiresIn: '7d',
     }) as string;
     return token;
@@ -33,8 +33,8 @@ export class AuthService {
 
     const user = await this.usersService.create(dto);
     const token = this.createToken({
-      id: user._id,
-      email: user.email,
+      id: String(user._id),
+      email: user.email!,
       role: user.role,
     });
 
@@ -54,8 +54,8 @@ export class AuthService {
     if (!isMatch) throw new UnauthorizedException('Invalid email or password');
 
     const token = this.createToken({
-      id: user._id,
-      email: user.email,
+      id: String(user._id),
+      email: user.email!,
       role: user.role,
     });
 
@@ -66,7 +66,7 @@ export class AuthService {
   async me(token: string) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
-      const decoded = jwtVerify(token, this.jwtSecret);
+      const decoded = jwt.verify(token, this.jwtSecret);
       if (!isAuthTokenPayload(decoded)) {
         throw new UnauthorizedException('Invalid token payload');
       }

@@ -29,11 +29,7 @@ const getAssetUrl = (asset) => {
 };
 
 const toSlug = (value) =>
-  (value || '')
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '-');
+  (value || '').toString().trim().toLowerCase().replace(/\s+/g, '-');
 
 module.exports = {
   endpoints,
@@ -41,4 +37,3 @@ module.exports = {
   getAssetUrl,
   toSlug,
 };
-

@@ -10,10 +10,10 @@ import { Type } from 'class-transformer';
 
 class BlogAuthorDto {
   @IsString()
-  _id: string;
+  _id!: string;
 
   @IsString()
-  name: string;
+  name!: string;
 
   @IsOptional()
   @IsString()
@@ -26,10 +26,10 @@ class BlogAuthorDto {
 
 export class CreatePostDto {
   @IsString()
-  title: string;
+  title!: string;
 
   @IsString()
-  slug: string;
+  slug!: string;
 
   @IsOptional()
   @IsString()
@@ -41,7 +41,7 @@ export class CreatePostDto {
 
   @IsArray()
   @IsString({ each: true })
-  menus: string[];
+  menus!: string[];
 
   @IsOptional()
   @IsArray()
@@ -55,7 +55,7 @@ export class CreatePostDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => BlogAuthorDto)
-  authors: BlogAuthorDto[];
+  authors!: BlogAuthorDto[];
 
   @IsOptional()
   @IsString()
@@ -63,7 +63,7 @@ export class CreatePostDto {
 
   @IsArray()
   @IsString({ each: true })
-  tags: string[];
+  tags!: string[];
 
   @IsOptional()
   @IsString()

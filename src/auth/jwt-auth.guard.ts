@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { verify as jwtVerify } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { AuthTokenPayload, isAuthTokenPayload } from './types';
 
@@ -26,7 +26,7 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
-      const decoded = jwtVerify(token, this.jwtSecret);
+      const decoded = jwt.verify(token, this.jwtSecret);
       if (!isAuthTokenPayload(decoded)) {
         throw new UnauthorizedException('Invalid token payload');
       }
