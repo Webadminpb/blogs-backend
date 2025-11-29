@@ -20,13 +20,27 @@ export class PostsController {
   async findAll(
     @Query('menu') menu?: string,
     @Query('submenu') submenu?: string,
+    @Query('search') search?: string,
   ) {
+    if (search) {
+      return this.posts.search(search);
+    }
     return this.posts.findAll(menu, submenu);
   }
 
   @Post()
   async create(@Body() body: CreatePostDto) {
     return this.posts.create(body);
+  }
+
+  @Get('slug/:slug')
+  async findBySlug(@Param('slug') slug: string) {
+    return this.posts.findBySlug(slug);
+  }
+
+  @Post(':id/view')
+  async incrementViews(@Param('id') id: string) {
+    return this.posts.incrementViews(id);
   }
 
   @Get(':id')

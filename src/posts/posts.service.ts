@@ -28,7 +28,14 @@ export class PostsService {
       query.where({ $or: [{ submenus: submenu }, { submenu }] });
     }
 
-    return query.lean().exec();
+    const posts = await query.lean().exec();
+    
+    // Transform to frontend format (single menu/submenu)
+    return posts.map(post => ({
+      ...post,
+      menu: post.menus?.[0] || (post as any).menu,
+      submenu: post.submenus?.[0] || (post as any).submenu,
+    }));
   }
 
   async findOne(id: string) {
@@ -45,7 +52,13 @@ export class PostsService {
   }
 
   async create(dto: CreatePostDto) {
-    return this.postModel.create(dto);
+    // Handle both formats: convert single menu/submenu to arrays
+    const data = {
+      ...dto,
+      menus: dto.menu ? [dto.menu] : (dto.menus || []),
+      submenus: dto.submenu ? [dto.submenu] : (dto.submenus || []),
+    };
+    return this.postModel.create(data);
   }
 
   async update(id: string, update: UpdatePostDto) {
@@ -68,5 +81,44 @@ export class PostsService {
       .sort({ createdAt: -1 })
       .lean()
       .exec();
+  }
+
+  async findBySlug(slug: string) {
+    const post = await this.postModel
+      .findOne({ slug })
+      .populate(
+        'authors._id',
+        'name email image description education address instagram linkedin index',
+      )
+      .lean()
+      .exec();
+    if (!post) throw new NotFoundException('Post not found');
+    return post;
+  }
+
+  async search(query: string) {
+    return this.postModel
+      .find({
+        $or: [
+          { title: { $regex: query, $options: 'i' } },
+          { description: { $regex: query, $options: 'i' } },
+          { tags: { $regex: query, $options: 'i' } },
+        ],
+      })
+      .populate(
+        'authors._id',
+        'name email image description education address instagram linkedin index',
+      )
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+  }
+
+  async incrementViews(id: string) {
+    const post = await this.postModel
+      .findByIdAndUpdate(id, { $inc: { views: 1 } }, { new: true })
+      .exec();
+    if (!post) throw new NotFoundException('Post not found');
+    return { views: post.views };
   }
 }

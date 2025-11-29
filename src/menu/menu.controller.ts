@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -26,12 +27,18 @@ export class MenuController {
 
   // ✅ Get all menus (public)
   @Get('menus')
-  getAllMenus() {
+  getAllMenus(@Query('search') search?: string) {
+    if (search) {
+      return this.menuService.search(search);
+    }
     return this.menuService.getAllMenus();
   }
 
   @Get()
-  getMenusRoot() {
+  getMenusRoot(@Query('search') search?: string) {
+    if (search) {
+      return this.menuService.search(search);
+    }
     return this.menuService.getAllMenus();
   }
 

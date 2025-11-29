@@ -1,7 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { PostsService } from '../posts/posts.service';
 import { MenuService } from '../menu/menu.service';
 import { UsersService } from '../users/users.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller()
 export class DashboardController {
@@ -12,6 +15,8 @@ export class DashboardController {
   ) {}
 
   @Get('dashboard-stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async stats() {
     const posts = (await this.posts.findAll()) as Array<{ views?: number }>;
     const totalPosts = posts.length;

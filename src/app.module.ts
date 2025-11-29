@@ -10,6 +10,7 @@ import { MenuModule } from './menu/menu.module';
 import { SettingsModule } from './settings/settings.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SeedModule } from './seed/seed.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SeedModule } from './seed/seed.module';
     SettingsModule,
     DashboardModule,
     SeedModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],

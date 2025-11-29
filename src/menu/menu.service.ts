@@ -41,15 +41,22 @@ export class MenuService {
       .sort({ name: 1 })
       .lean();
 
-    return menus.map((menu) => {
+    return menus.map((menuDoc) => {
       const menuId =
-        typeof menu._id === 'string'
-          ? menu._id
-          : menu._id instanceof Types.ObjectId
-            ? menu._id.toHexString()
+        typeof menuDoc._id === 'string'
+          ? menuDoc._id
+          : menuDoc._id instanceof Types.ObjectId
+            ? menuDoc._id.toHexString()
             : undefined;
       return {
-        menu,
+        menu: {
+          _id: menuDoc._id,
+          name: menuDoc.name,
+          slug: menuDoc.slug,
+          description: menuDoc.description,
+          index: menuDoc.index,
+          status: menuDoc.status,
+        },
         submenus: submenus.filter(
           (s) => menuId && s.parent_id && String(s.parent_id) === menuId,
         ),
@@ -91,5 +98,20 @@ export class MenuService {
   // ✅ Delete submenu
   async deleteSubmenu(id: string) {
     return this.submenuModel.findByIdAndDelete(id).lean();
+  }
+
+  // ✅ Search menus
+  async search(query: string) {
+    const menus = await this.menuModel
+      .find({
+        $or: [
+          { name: { $regex: query, $options: 'i' } },
+          { slug: { $regex: query, $options: 'i' } },
+        ],
+      })
+      .sort({ index: 1, name: 1 })
+      .lean();
+
+    return menus;
   }
 }

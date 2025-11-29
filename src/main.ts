@@ -8,7 +8,13 @@ async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'https://dasalon-blogs.vercel.app',
+    origin: [
+      process.env.FRONTEND_URL || 'https://dasalon.com',
+      'https://dasalon-blogs.vercel.app',
+      'https://dasalon.com',
+      'https://www.dasalon.com',
+      'http://localhost:3000', // Development
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });

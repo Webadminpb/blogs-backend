@@ -48,6 +48,15 @@ export class CreatePostDto {
   @IsString({ each: true })
   submenus?: string[];
 
+  // Support single menu/submenu for frontend compatibility
+  @IsOptional()
+  @IsString()
+  menu?: string;
+
+  @IsOptional()
+  @IsString()
+  submenu?: string;
+
   @IsOptional()
   @IsString()
   thumbnail?: string;

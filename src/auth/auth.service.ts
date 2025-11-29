@@ -38,7 +38,7 @@ export class AuthService {
       role: user.role,
     });
 
-    return { message: 'Signup successful', token, user };
+    return { message: 'Signup successful', access_token: token, user };
   }
 
   // Login
@@ -59,7 +59,7 @@ export class AuthService {
       role: user.role,
     });
 
-    return { message: 'Login successful', token, user };
+    return { message: 'Login successful', access_token: token, user };
   }
 
   // Get current user

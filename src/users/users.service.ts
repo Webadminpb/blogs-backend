@@ -97,4 +97,16 @@ export class UsersService {
     if (!deleted) throw new NotFoundException('User not found');
     return deleted;
   }
+
+  async search(query: string): Promise<UserDocument[]> {
+    return this.userModel
+      .find({
+        $or: [
+          { name: { $regex: query, $options: 'i' } },
+          { email: { $regex: query, $options: 'i' } },
+        ],
+      })
+      .select('-password')
+      .exec();
+  }
 }
