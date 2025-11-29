@@ -38,10 +38,22 @@ export class S3Service {
       },
     });
 
-    this.bucket = process.env.S3_BUCKET || 'dasalon-blog';
+    this.bucket =
+      process.env.S3_BUCKET || process.env.AWS_BUCKET_NAME || 'dasalon-blog';
 
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      this.logger.warn('AWS credentials not properly configured');
+      this.logger.warn(
+        'AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) not properly configured in .env',
+      );
+    }
+    if (
+      !process.env.S3_BUCKET &&
+      !process.env.AWS_BUCKET_NAME &&
+      this.bucket === 'dasalon-blog'
+    ) {
+      this.logger.warn(
+        'S3 Bucket name not configured in .env (S3_BUCKET or AWS_BUCKET_NAME). Using default: dasalon-blog',
+      );
     }
   }
 

@@ -19,6 +19,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
+import { S3Service } from '../lib/s3.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -45,7 +46,10 @@ const isDuplicateKeyError = (error: unknown): error is { code: number } => {
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly users: UsersService) {}
+  constructor(
+    private readonly users: UsersService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   @Get()
   async findAll(@Query('search') search?: string) {
@@ -153,8 +157,7 @@ export class UsersController {
     }
 
     // Upload to S3
-    const s3Service = new (await import('../lib/s3.service')).S3Service();
-    const result = await s3Service.uploadFile(file, 'avatars');
+    const result = await this.s3Service.uploadFile(file, 'avatars');
 
     // Update user image
     await this.users.update(id, { image: result.secure_url });
